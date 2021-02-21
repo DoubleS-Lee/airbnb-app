@@ -134,3 +134,14 @@ MEDIA_URL = "/media/"
 # Auth
 
 AUTH_USER_MODEL = "users.User"
+
+
+# Django Rest Framework
+
+REST_FRAMEWORK = {
+    # DRF의 view에서 전달하는 모든 api 데이터에 대하여 pagination을 적용하는 경우 다음과 같이 사용
+    # 공식문서에 보면 더 많은 종류의 pagination이 있
+    # https://www.django-rest-framework.org/api-guide/pagination/#api-reference
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+}
