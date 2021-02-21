@@ -135,7 +135,7 @@ MEDIA_URL = "/media/"
 
 AUTH_USER_MODEL = "users.User"
 
-
+# http://www.cdrf.co/
 # Django Rest Framework
 
 REST_FRAMEWORK = {

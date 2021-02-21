@@ -13,4 +13,12 @@ class RoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Room
-        fields = ("name", "price", "instant_book", "user")
+        fields = ("pk", "name", "price", "instant_book", "user")
+
+
+class BigRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        # exclude는 fields를 설정해주는 또 다른 방법이다
+        # 제외하고 싶은 항목을 추가하면 된다
+        exclude = ()
