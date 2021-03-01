@@ -1,7 +1,7 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from .models import Room
-from .serializers import RoomSerializer, BigRoomSerializer
+from .serializers import RoomSerializer
 
 # ListAPIView를 이용한 Class-Based-View 생성
 # rest_framework.generics을 이용하여 serializer를 생성하는 것은 커스터마이징이 필요없을때는 아주 좋은 방법이다
@@ -16,4 +16,4 @@ class ListRoomView(ListAPIView):
 # http://www.cdrf.co/3.9/rest_framework.generics/RetrieveAPIView.html
 class SeeRoomView(RetrieveAPIView):
     queryset = Room.objects.all()
-    serializer_class = BigRoomSerializer
+    serializer_class = RoomSerializer
