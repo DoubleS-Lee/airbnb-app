@@ -35,6 +35,7 @@ class RoomsView(APIView):
 
 
 class RoomView(APIView):
+    # 중복해서 사용하는 room을 가져오는 기능을 method로 만든다
     def get_room(self, pk):
         try:
             room = Room.objects.get(pk=pk)
@@ -45,6 +46,7 @@ class RoomView(APIView):
     # detail view를 구현해야하니까 각 room에 대한 pk값을 꼭 받아줘야한다
     def get(self, request, pk):
         # print(pk)
+        # get_room 메소드 실행후 특정 room 받아오기
         room = self.get_room(pk)
         if room is not None:
             serializer = ReadRoomSerializer(room).data
@@ -55,5 +57,14 @@ class RoomView(APIView):
     def put(self, request):
         pass
 
-    def delete(self, request):
-        pass
+    def delete(self, request, pk):
+        # get_room 메소드 실행후 특정 room 받아오기
+        room = self.get_room(pk)
+        if room is not None:
+            # host와 현재 유저가 같은 유저인지 확인
+            if room.user != request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            room.delete()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
