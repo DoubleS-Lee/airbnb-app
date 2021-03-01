@@ -35,14 +35,21 @@ class RoomsView(APIView):
 
 
 class RoomView(APIView):
+    def get_room(self, pk):
+        try:
+            room = Room.objects.get(pk=pk)
+            return room
+        except Room.DoesNotExist:
+            return None
+
     # detail view를 구현해야하니까 각 room에 대한 pk값을 꼭 받아줘야한다
     def get(self, request, pk):
         # print(pk)
-        try:
-            room = Room.objects.get(pk=pk)
+        room = self.get_room(pk)
+        if room is not None:
             serializer = ReadRoomSerializer(room).data
             return Response(data=serializer)
-        except Room.DoesNotExist:
+        else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request):
