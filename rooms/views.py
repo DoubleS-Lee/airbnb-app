@@ -1,19 +1,19 @@
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Room
 from .serializers import ReadRoomSerializer, WriteRoomSerializer
 from rest_framework.decorators import api_view
 from rest_framework import status
 
-# GET과 POST를 decorators를 사용해서 구현한다
-@api_view(["GET", "POST"])
-def rooms_view(request):
-    # print(request)
-    if request.method == "GET":
+# function을 class로 변경
+class RoomsView(APIView):
+    def get(self, request):
         rooms = Room.objects.all()
         serializer = ReadRoomSerializer(rooms, many=True).data
         return Response(serializer)
-    elif request.method == "POST":
+
+    def post(self, request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         # request.data를 data로 넘겨주면서 WriteRoomSerializer를 실행하고 결과를 serializer에 담는다
