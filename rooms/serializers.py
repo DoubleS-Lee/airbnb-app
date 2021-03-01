@@ -35,3 +35,15 @@ class WriteRoomSerializer(serializers.Serializer):
         # print(validated_data)
         # Room을 만든다(validated_data로 부터 받은 정보들을 **(=다 풀어서)Room을 만든다)
         return Room.objects.create(**validated_data)
+
+    # https://www.django-rest-framework.org/api-guide/serializers/#validation
+    # 유효성(validation) 검사를 위한 코드를 작성할 수 있다
+    # 여기서 데이터가 valid되지 않게 된다면 views의 serializer.is_valid() 값이 False가 된다
+    def validate(self, data):
+        check_in = data.get("check_in")
+        check_out = data.get("check_out")
+        if check_in == check_out:
+            # 에러를 띄우고 views.py의 serializer.errors에 "Not enough time between changes" 값을 전달한다
+            raise serializers.ValidationError("Not enough time between changes")
+        else:
+            return data

@@ -32,7 +32,8 @@ def rooms_view(request):
             # room 정보 create가 성공했으면 방금 생성한 room에 대한 정보를 보여주는 return을 실시한다
             return Response(data=room_serializer, status=status.HTTP_200_OK)
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            # serializer.is_valid()가 False라면 serializers.py의 raise serializers.ValidationError("Not enough time between changes")가 serializers.errors에 값을 넘겨주게 되고 이를 data에 할당했다
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # RetrieveAPIView는 1개의 모델을 읽기 위해 사용하는 APIView이다
