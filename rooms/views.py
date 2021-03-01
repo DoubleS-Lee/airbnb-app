@@ -54,9 +54,30 @@ class RoomView(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request):
-        pass
+    # room edit 기능
+    def put(self, request, pk):
+        room = self.get_room(pk)
+        if room is not None:
+            if room.user != request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            # partial=True를 해야만 부분적으로 업데이트 했을때도 정상 작동이 가능함
+            # 여기서 room을 건네줬다는것 자체가 instance가 되는 기존에 존재하는 room이 있다는 뜻을 의미한다
+            # 따라서 serializer는 이것을 기준으로 create인지 update인지 구분한다
+            # 여기서는 room이 있으니 update로 판단한다
+            serializer = WriteRoomSerializer(room, data=request.data, partial=True)
+            # def validate(self, data):를 통과한 경우 if serializer.is_valid() 가 True가 됨
+            if serializer.is_valid():
+                # update한 내용을 받아서 저장하고 room에 할당한다
+                room = serializer.save()
+                # 업데이트하고 저장된 항목을 가지고 ReadRoomSerializer에 집어넣어 return을 받는다
+                return Response(ReadRoomSerializer(room).data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response()
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
+    # room delete 기능
     def delete(self, request, pk):
         # get_room 메소드 실행후 특정 room 받아오기
         room = self.get_room(pk)
