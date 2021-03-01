@@ -29,3 +29,9 @@ class WriteRoomSerializer(serializers.Serializer):
     check_in = serializers.TimeField(default="00:00:00")
     check_out = serializers.TimeField(default="00:00:00")
     instant_book = serializers.BooleanField(default=False)
+
+    # https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
+    def create(self, validated_data):
+        # print(validated_data)
+        # Room을 만든다(validated_data로 부터 받은 정보들을 **(=다 풀어서)Room을 만든다)
+        return Room.objects.create(**validated_data)
