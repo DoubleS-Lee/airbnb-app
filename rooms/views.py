@@ -1,9 +1,7 @@
-from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Room
 from .serializers import ReadRoomSerializer, WriteRoomSerializer
-from rest_framework.decorators import api_view
 from rest_framework import status
 
 # function을 class로 변경
@@ -36,9 +34,19 @@ class RoomsView(APIView):
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# RetrieveAPIView는 1개의 모델을 읽기 위해 사용하는 APIView이다
-# ListAPIView는 여러개의 모델을 다 불러오는 반면 RetrieveAPIView는 한개의 모델만 불러온다
-# http://www.cdrf.co/3.9/rest_framework.generics/RetrieveAPIView.html
-class SeeRoomView(RetrieveAPIView):
-    queryset = Room.objects.all()
-    serializer_class = ReadRoomSerializer
+class RoomView(APIView):
+    # detail view를 구현해야하니까 각 room에 대한 pk값을 꼭 받아줘야한다
+    def get(self, request, pk):
+        # print(pk)
+        try:
+            room = Room.objects.get(pk=pk)
+            serializer = ReadRoomSerializer(room).data
+            return Response(data=serializer)
+        except Room.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request):
+        pass
+
+    def delete(self, request):
+        pass
