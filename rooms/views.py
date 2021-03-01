@@ -1,14 +1,25 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from .models import Room
-from .serializers import RoomSerializer
+from .serializers import ReadRoomSerializer, WriteRoomSerializer
+from rest_framework.decorators import api_view
+from rest_framework import status
 
-# ListAPIView를 이용한 Class-Based-View 생성
-# rest_framework.generics을 이용하여 serializer를 생성하는 것은 커스터마이징이 필요없을때는 아주 좋은 방법이다
-# 하지만 유저 인증등의 커스터마이징이 필요한 경우에는 APIView를 사용하는 것이 좋다
-class ListRoomView(ListAPIView):
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+# GET과 POST를 decorators를 사용해서 구현한다
+@api_view(["GET", "POST"])
+def rooms_view(request):
+    # print(request)
+    if request.method == "GET":
+        rooms = Room.objects.all()
+        serializer = ReadRoomSerializer(rooms, many=True).data
+        return Response(serializer)
+    elif request.method == "POST":
+        serializer = WriteRoomSerializer(data=request.data)
+        # print(serializer.is_valid())
+        if serializer.is_valid():
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 # RetrieveAPIView는 1개의 모델을 읽기 위해 사용하는 APIView이다
@@ -16,4 +27,4 @@ class ListRoomView(ListAPIView):
 # http://www.cdrf.co/3.9/rest_framework.generics/RetrieveAPIView.html
 class SeeRoomView(RetrieveAPIView):
     queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+    serializer_class = ReadRoomSerializer

@@ -6,7 +6,7 @@ from users.serializers import UserSerializer
 
 # 여기서 serializers.Serializer를 쓰면 각각의 데이터에 해당하는 것을 다 일일이 지정해줘야하는데 serializers.ModelSerializer를 쓰면 이게 해결된다
 # serializers.ModelSerializer를 사용한다
-class RoomSerializer(serializers.ModelSerializer):
+class ReadRoomSerializer(serializers.ModelSerializer):
 
     # room과 foreignkey로 연결되어 있는 user에 있는 데이터들을 불러오려면 이런식으로 users-serializers.py에서 serializer를 생성해주고 이곳으로 불러와서 사용하면 된다
     user = UserSerializer()
@@ -14,3 +14,18 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         exclude = ()
+
+
+class WriteRoomSerializer(serializers.Serializer):
+
+    name = serializers.CharField(max_length=140)
+    address = serializers.CharField(max_length=140)
+    price = serializers.IntegerField()
+    beds = serializers.IntegerField(default=1)
+    lat = serializers.DecimalField(max_digits=10, decimal_places=6)
+    lng = serializers.DecimalField(max_digits=10, decimal_places=6)
+    bedrooms = serializers.IntegerField(default=1)
+    bathrooms = serializers.IntegerField(default=1)
+    check_in = serializers.TimeField(default="00:00:00")
+    check_out = serializers.TimeField(default="00:00:00")
+    instant_book = serializers.BooleanField(default=False)
