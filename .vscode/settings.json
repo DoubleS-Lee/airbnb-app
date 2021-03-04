@@ -1,4 +1,3 @@
 {
-    "python.pythonPath": "C:\\Users\\Seohee\\anaconda3\\envs\\airbnb-app\\python.exe",
     "python.formatting.provider": "black"
 }
