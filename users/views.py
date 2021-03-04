@@ -5,6 +5,7 @@ from rest_framework import status
 from .models import User
 from .serializers import ReadUserSerializer
 from rest_framework.permissions import IsAuthenticated
+from .serializers import WriteUserSerializer
 
 
 # APIView에 사용하는 장고 authentication, permissions
@@ -18,7 +19,13 @@ class MeView(APIView):
         return Response(ReadUserSerializer(request.user).data)
 
     def put(self, request):
-        pass
+        serializer = WriteUserSerializer(request.user, data=request.data, partial=True)
+        # print(serializer.is_valid())
+        if serializer.is_valid():
+            serializer.save()
+            return Response()
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
