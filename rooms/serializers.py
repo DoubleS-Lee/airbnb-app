@@ -16,25 +16,12 @@ class ReadRoomSerializer(serializers.ModelSerializer):
         exclude = ()
 
 
-class WriteRoomSerializer(serializers.Serializer):
+class WriteRoomSerializer(serializers.ModelSerializer):
 
-    name = serializers.CharField(max_length=140)
-    address = serializers.CharField(max_length=140)
-    price = serializers.IntegerField()
-    beds = serializers.IntegerField(default=1)
-    lat = serializers.DecimalField(max_digits=10, decimal_places=6)
-    lng = serializers.DecimalField(max_digits=10, decimal_places=6)
-    bedrooms = serializers.IntegerField(default=1)
-    bathrooms = serializers.IntegerField(default=1)
-    check_in = serializers.TimeField(default="00:00:00")
-    check_out = serializers.TimeField(default="00:00:00")
-    instant_book = serializers.BooleanField(default=False)
-
-    # https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
-    def create(self, validated_data):
-        # print(validated_data)
-        # Room을 만든다(validated_data로 부터 받은 정보들을 **(=다 풀어서)Room을 만든다)
-        return Room.objects.create(**validated_data)
+    # ModelSerializer 하나로 create, update 메소드를 따로 구현할 필요가 없음
+    class Meta:
+        model = Room
+        exclude = ("user", "modified", "created")
 
     # https://www.django-rest-framework.org/api-guide/serializers/#validation
     # 유효성(validation) 검사를 위한 코드를 작성할 수 있다
@@ -56,30 +43,3 @@ class WriteRoomSerializer(serializers.Serializer):
             # 에러를 띄우고 views.py의 serializer.errors에 "Not enough time between changes" 값을 전달한다
             raise serializers.ValidationError("Not enough time between changes")
         return data
-
-    # https://www.django-rest-framework.org/api-guide/serializers/#writing-create-methods-for-nested-representations
-    # create와 다르게 instance를 가지고 있다 instance로 DRF가 유저가 create를 하는지 update를 하는지 구별한다
-    # instance : 초기 객체(이미 만들어져 있는 객체), update의 경우 instance가 존재하고, create의 경우 instance가 존재하지 않는다
-    # update : instance를 가지고 serializer를 initialize 한다
-    # create : 오직 data만을 가지고 serializer를 initialize 한다
-    def update(self, instance, validated_data):
-        # print(instance, validated_data)
-        # data를 update 하기전에 기존에 존재하는 객체의 값인 instance 값을 가져와서
-        # 존재하는지(유저가 update했는지) 확인한 뒤 update했으면 반영하고, update 안했으면 기존 값(=instance)을 가져와서 그대로 넣어준다
-        instance.name = validated_data.get("name", instance.name)
-        instance.address = validated_data.get("address", instance.address)
-        instance.price = validated_data.get("price", instance.price)
-        instance.beds = validated_data.get("beds", instance.beds)
-        instance.lat = validated_data.get("lat", instance.lat)
-        instance.lng = validated_data.get("lng", instance.lng)
-        instance.bedrooms = validated_data.get("bedrooms", instance.bedrooms)
-        instance.bathrooms = validated_data.get("bathrooms", instance.bathrooms)
-        instance.check_in = validated_data.get("check_in", instance.check_in)
-        instance.check_out = validated_data.get("check_out", instance.check_out)
-        instance.instant_book = validated_data.get(
-            "instant_book", instance.instant_book
-        )
-        # 변경된 instance를 저장해준다
-        instance.save()
-        # 꼭 return을 해줘야 함
-        return instance
