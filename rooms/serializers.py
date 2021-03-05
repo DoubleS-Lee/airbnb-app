@@ -4,24 +4,19 @@ from rest_framework import serializers
 from .models import Room
 from users.serializers import RelatedUserSerializer
 
-# 여기서 serializers.Serializer를 쓰면 각각의 데이터에 해당하는 것을 다 일일이 지정해줘야하는데 serializers.ModelSerializer를 쓰면 이게 해결된다
-# serializers.ModelSerializer를 사용한다
-class ReadRoomSerializer(serializers.ModelSerializer):
 
-    # room과 foreignkey로 연결되어 있는 user에 있는 데이터들을 불러오려면 이런식으로 users-serializers.py에서 serializer를 생성해주고 이곳으로 불러와서 사용하면 된다
+class RoomSerializer(serializers.ModelSerializer):
+
     user = RelatedUserSerializer()
-
-    class Meta:
-        model = Room
-        exclude = ()
-
-
-class WriteRoomSerializer(serializers.ModelSerializer):
 
     # ModelSerializer 하나로 create, update 메소드를 따로 구현할 필요가 없음
     class Meta:
         model = Room
-        exclude = ("user", "modified", "created")
+        exclude = ("modified",)
+        # read_only_fields : 수정은 안되고 읽어오기만 가능한 항목을 넣어준다
+        # ModelSerializer에서만 사용가능
+        # https://www.django-rest-framework.org/api-guide/serializers/#specifying-read-only-fields
+        read_only_fields = ("id", "user", "created", "updated")
 
     # https://www.django-rest-framework.org/api-guide/serializers/#validation
     # 유효성(validation) 검사를 위한 코드를 작성할 수 있다
