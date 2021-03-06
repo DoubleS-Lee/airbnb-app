@@ -7,6 +7,7 @@ from .serializers import ReadUserSerializer
 from rest_framework.permissions import IsAuthenticated
 from .serializers import WriteUserSerializer
 from rooms.serializers import RoomSerializer
+from rooms.models import Room
 
 
 # APIView에 사용하는 장고 authentication, permissions
@@ -50,4 +51,15 @@ class FavsView(APIView):
         return Response(serializer)
 
     def put(self, request):
-        pass
+        # ("pk", None) 이렇게 써줬기 때문에 입력을 받을때 id로 받는게 아니라 pk로 입력을 받는다
+        pk = request.data.get("pk", None)
+        user = request.user
+        if pk is not None:
+            try:
+                room = Room.objects.get(pk=pk)
+                # user.favs에 room을 추가한다
+                user.favs.add(room)
+                return Response()
+            except Room.DoesNotExist:
+                pass
+        return Response(status=status.HTTP_400_BAD_REQUEST)
