@@ -54,11 +54,18 @@ class FavsView(APIView):
         # ("pk", None) 이렇게 써줬기 때문에 입력을 받을때 id로 받는게 아니라 pk로 입력을 받는다
         pk = request.data.get("pk", None)
         user = request.user
+        # delete를 구현할때 def delete를 안쓰고 add()와 remove()로 구현할수도 있다
+        # 로직 : 만약에 입력한 값이 favs에 있다면 삭제(remove)하고, 없다면 추가(add)해라
         if pk is not None:
             try:
                 room = Room.objects.get(pk=pk)
-                # user.favs에 room을 추가한다
-                user.favs.add(room)
+                # 만약 선택한 room이 user.favs안에 담겨있다면
+                if room in user.favs.all():
+                    # user.favs에서 room을 제거한다
+                    user.favs.remove(room)
+                else:
+                    # user.favs에 room을 추가한다
+                    user.favs.add(room)
                 return Response()
             except Room.DoesNotExist:
                 pass
