@@ -27,6 +27,8 @@ class ReadUserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
             "date_joined",
+            # user 정보를 보는 곳에서 favs를 불러오면 favs가 1000개 인 경우 곤란한 상황을 맞닥드릴수 있음
+            "favs",
         )
 
 

@@ -6,6 +6,7 @@ from .models import User
 from .serializers import ReadUserSerializer
 from rest_framework.permissions import IsAuthenticated
 from .serializers import WriteUserSerializer
+from rooms.serializers import RoomSerializer
 
 
 # APIView에 사용하는 장고 authentication, permissions
@@ -35,3 +36,18 @@ def user_detail(request, pk):
         return Response(ReadUserSerializer(user).data)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class FavsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # user에 현재 로그인된(=요청을 한) 유저를 할당
+        user = request.user
+        # user의 favs의 전부를 가져온다
+        serializer = RoomSerializer(user.favs.all(), many=True).data
+        return Response(serializer)
+
+    def put(self, request):
+        pass
