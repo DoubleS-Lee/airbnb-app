@@ -9,6 +9,16 @@ from rooms.serializers import RoomSerializer
 from rooms.models import Room
 
 
+class UsersView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            new_user = serializer.save()
+            return Response(UserSerializer(new_user).data)
+        else:
+            return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+
 # APIView에 사용하는 장고 authentication, permissions
 # https://www.django-rest-framework.org/api-guide/authentication/
 class MeView(APIView):
@@ -27,15 +37,6 @@ class MeView(APIView):
             return Response()
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET"])
-def user_detail(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        return Response(UserSerializer(user).data)
-    except User.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class FavsView(APIView):
@@ -69,3 +70,12 @@ class FavsView(APIView):
             except Room.DoesNotExist:
                 pass
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def user_detail(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+        return Response(UserSerializer(user).data)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
