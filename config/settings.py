@@ -144,4 +144,15 @@ REST_FRAMEWORK = {
     # https://www.django-rest-framework.org/api-guide/pagination/#api-reference
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    # 2가지 인증방식을 갖게 됨
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        # session을 이용한 인증방식
+        # -> api로 정보를 보냄으로써 user가 누군지 확인하는 방식
+        "rest_framework.authentication.SessionAuthentication",
+        # 다른 인증방식 구현 -> custom authentication
+        # -> header에 담긴 token 정보를 이용하여 user가 누군지 확인하는 방식
+        # 밑의 문서를 참고할 것
+        # https://www.django-rest-framework.org/api-guide/authentication/#custom-authentication
+        "config.authentication.JWTAuthentication",
+    ],
 }

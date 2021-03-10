@@ -104,10 +104,12 @@ def login(request):
         # SECRET_KEY는 장고 settings.py의 SECRET_KEY를 이용
         # https://pyjwt.readthedocs.io/en/stable/
         # https://jwt.io/
+        # user.pk를 가지고 고유한 토큰을 생성한다
         encoded_jwt = jwt.encode(
-            {"id": user.pk}, settings.SECRET_KEY, algorithm="HS256"
+            {"pk": user.pk}, settings.SECRET_KEY, algorithm="HS256"
         )
         # print(encoded_jwt)
+        # 그리고 생성한 토큰을 token이라는 이름으로 내보내준다
         return Response(data={"token": encoded_jwt})
     else:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
