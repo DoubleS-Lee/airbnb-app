@@ -1,3 +1,8 @@
+import jwt
+
+# settings는 그냥 불러오면 안되고 꼭 이 경로로 불러와야 한다
+from django.conf import settings
+from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -79,3 +84,30 @@ def user_detail(request, pk):
         return Response(UserSerializer(user).data)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+def login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    # print(request.data)
+    if not username or not password:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    # print(username, password)
+    # 입력받은 username과 password에 해당하는 가입된 유저가 있는지 찾아본다
+    # 있으면 user를 반환, 없으면 None을 반환한다
+    # https://docs.djangoproject.com/en/3.1/topics/auth/default/#authenticating-users
+    user = authenticate(username=username, password=password)
+    # print(user)
+    if user is not None:
+        # settings.py 파일은 그냥 불러오면 안되고 from django.conf import settings 이렇게 불러와야 한다
+        # SECRET_KEY는 장고 settings.py의 SECRET_KEY를 이용
+        # https://pyjwt.readthedocs.io/en/stable/
+        # https://jwt.io/
+        encoded_jwt = jwt.encode(
+            {"id": user.pk}, settings.SECRET_KEY, algorithm="HS256"
+        )
+        # print(encoded_jwt)
+        return Response(data={"token": encoded_jwt})
+    else:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)

@@ -2,12 +2,12 @@
 
 from rest_framework import serializers
 from .models import Room
-from users.serializers import RelatedUserSerializer
+from users.serializers import UserSerializer
 
 
 class RoomSerializer(serializers.ModelSerializer):
 
-    user = RelatedUserSerializer()
+    user = UserSerializer()
 
     # ModelSerializer 하나로 create, update 메소드를 따로 구현할 필요가 없음
     class Meta:
