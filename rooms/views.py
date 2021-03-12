@@ -3,13 +3,27 @@ from rest_framework.response import Response
 from .models import Room
 from .serializers import RoomSerializer
 from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
+
+
+# 앞으로 만들 paginator의 중복 코딩을 막기위해 관련 기능을 class로 만들어 놓는다
+class OwnPagination(PageNumberPagination):
+    page_size = 20
+
 
 # function을 class로 변경
 class RoomsView(APIView):
     def get(self, request):
+        # 설정해놓은 pagination class를 불러와서 할당
+        paginator = OwnPagination()
         rooms = Room.objects.all()
-        serializer = RoomSerializer(rooms, many=True).data
-        return Response(serializer)
+        # custom pagination 제작을 위함
+        # paginator.paginate_queryset : pagination할 데이터를 정의해준다
+        results = paginator.paginate_queryset(rooms, request)
+        serializer = RoomSerializer(results, many=True)
+        # paginator.get_paginated_response : page에 대한 데이터를 응답으로 반환해준다
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         if not request.user.is_authenticated:
