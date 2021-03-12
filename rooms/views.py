@@ -18,6 +18,7 @@ class RoomsView(APIView):
         # 설정해놓은 pagination class를 불러와서 할당
         paginator = OwnPagination()
         rooms = Room.objects.all()
+        # https://www.django-rest-framework.org/api-guide/pagination/#custom-pagination-styles
         # custom pagination 제작을 위함
         # paginator.paginate_queryset : pagination할 데이터를 정의해준다
         results = paginator.paginate_queryset(rooms, request)
