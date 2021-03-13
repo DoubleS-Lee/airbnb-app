@@ -108,8 +108,41 @@ class RoomView(APIView):
 
 @api_view(["GET"])
 def room_search(request):
+    # request(url)에서 max_price를 찾아보렴~ 만약에 없으면 그건 None으로 하면 된단다 라는 뜻
+    max_price = request.GET.get("max_price", None)
+    min_price = request.GET.get("min_price", None)
+    beds = request.GET.get("beds", None)
+    bedrooms = request.GET.get("bedrooms", None)
+    bathrooms = request.GET.get("bathrooms", None)
+    # 검색 조건을 담고 있는 dictionary 생성
+    filter_kwargs = {}
+    if max_price is not None:
+        # filter 조건을 filter_kwargs[] 내부에 넣어준다
+        # https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
+        # lte : ~보다 작거나 같음, gte:~보다 크거나 같음 등
+        filter_kwargs["price__lte"] = max_price
+    if min_price is not None:
+        filter_kwargs["price__gte"] = min_price
+    if beds is not None:
+        filter_kwargs["beds__gte"] = beds
+    if bedrooms is not None:
+        filter_kwargs["bedrooms__gte"] = bedrooms
+    if bathrooms is not None:
+        filter_kwargs["bathrooms__gte"] = bathrooms
+    # 주소창에 http://127.0.0.1:8000/api/v1/rooms/search/?max_price=30&beds=2&bathrooms=2 이렇게 넣고 검색한 뒤 그 결과인 filter_kwargs를 print하여 확인해본다
+    # print(filter_kwargs)
+    # *을 이용해서 filter_kwargs를 unpack하면 key값의 이름만 나오게 된다
+    # print(*filter_kwargs)
+    # **filter_kwargs는 price__lte='30, beds__gte='2', bathrooms__gte='2'를 뱉는다
+    #  -> print는 이를 이해할 수 없다
     paginator = OwnPagination()
-    rooms = Room.objects.all()
+    try:
+        # filter_kwargs의 내용으로 Room에서 검색을 해준다(filter 이용)
+        # 검색 내용인 **filter_kwargs를 filter object에 전달
+        # 그리고 그 결과를 rooms에 담아놓는다
+        rooms = Room.objects.filter(**filter_kwargs)
+    except ValueError:
+        rooms = Room.objects.all()
     results = paginator.paginate_queryset(rooms, request)
     serializer = RoomSerializer(results, many=True)
     return paginator.get_paginated_response(serializer.data)
