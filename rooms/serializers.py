@@ -8,6 +8,10 @@ from users.serializers import UserSerializer
 class RoomSerializer(serializers.ModelSerializer):
 
     user = UserSerializer()
+    # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
+    # 밑에 def get_is_fav 메소드를 생성한다
+    # 메소드 앞에 get_을 붙여야한다
+    is_fav = serializers.SerializerMethodField()
 
     # ModelSerializer 하나로 create, update 메소드를 따로 구현할 필요가 없음
     class Meta:
@@ -38,3 +42,24 @@ class RoomSerializer(serializers.ModelSerializer):
             # 에러를 띄우고 views.py의 serializer.errors에 "Not enough time between changes" 값을 전달한다
             raise serializers.ValidationError("Not enough time between changes")
         return data
+
+    # 아주 중요한 개념!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # dynamic field : 페이지를 요청하는 유저에 따라서 바뀌는 필드 예)is_fav
+    # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
+    # get_is_fav가 serializer에 있는 모든 object를 불러오는 역할을 한다
+    # 그래서 obj를 print 해보면 현재 페이지의 room 정보가 뜨는 것이다
+    def get_is_fav(self, obj):
+        # self는 serializers.ModelSerializer를 obj는 현재 보고있는 room의 정보를 말한다
+        # print(obj)
+        # 우리는 이 serializer를 찾는 user가 알아낼 필요가 있다. 그래야 유저 각각에 맞게 is_fav값을 내보내 줄 수 있기 때문
+        # views.py class RoomsView - serializer = RoomSerializer(results, many=True, context=["request": request]) 에서 context로 받아온
+        # request를 이용해서 request.user(현재 이 정보(serializer)를 찾는 유저가 누구인지 알아내기 위함)를 가져온다
+        request = self.context.get("request")
+        # print(request.user)
+        if request:
+            user = request.user
+            # 인증된 유저라면
+            if user.is_authenticated:
+                # 현재 user(=로그인 된, 요청하고 있는)의 models에 있는 favs 목록에 현재 rooms이 담겨있다면(=user가 fav 목록에 포함시켜놨다면) True를 반환
+                return obj in user.favs.all()
+        return False

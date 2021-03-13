@@ -22,7 +22,8 @@ class RoomsView(APIView):
         # custom pagination 제작을 위함
         # paginator.paginate_queryset : pagination할 데이터를 정의해준다
         results = paginator.paginate_queryset(rooms, request)
-        serializer = RoomSerializer(results, many=True)
+        # context를 이용해서 request를 request라는 이름으로 serializers.py - class RoomSerializer에 건네준다
+        serializer = RoomSerializer(results, many=True, context={"request": request})
         # paginator.get_paginated_response : page에 대한 데이터를 응답으로 반환해준다
         return paginator.get_paginated_response(serializer.data)
 
