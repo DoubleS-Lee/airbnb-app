@@ -114,6 +114,8 @@ def room_search(request):
     beds = request.GET.get("beds", None)
     bedrooms = request.GET.get("bedrooms", None)
     bathrooms = request.GET.get("bathrooms", None)
+    lat = request.GET.get("lat", None)
+    lng = request.GET.get("lng", None)
     # 검색 조건을 담고 있는 dictionary 생성
     filter_kwargs = {}
     if max_price is not None:
@@ -136,6 +138,11 @@ def room_search(request):
     # **filter_kwargs는 price__lte='30, beds__gte='2', bathrooms__gte='2'를 뱉는다
     #  -> print는 이를 이해할 수 없다
     paginator = OwnPagination()
+    if lat is not None and lng is not None:
+        filter_kwargs["lat__gte"] = float(lat) - 0.005
+        filter_kwargs["lat__lte"] = float(lat) + 0.005
+        filter_kwargs["lng__gte"] = float(lng) - 0.005
+        filter_kwargs["lng__lte"] = float(lng) + 0.005
     try:
         # filter_kwargs의 내용으로 Room에서 검색을 해준다(filter 이용)
         # 검색 내용인 **filter_kwargs를 filter object에 전달
