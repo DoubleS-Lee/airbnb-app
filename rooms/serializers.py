@@ -7,7 +7,7 @@ from users.serializers import UserSerializer
 
 class RoomSerializer(serializers.ModelSerializer):
 
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
     # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
     # 밑에 def get_is_fav 메소드를 생성한다
     # 메소드 앞에 get_을 붙여야한다
@@ -63,3 +63,16 @@ class RoomSerializer(serializers.ModelSerializer):
                 # 현재 user(=로그인 된, 요청하고 있는)의 models에 있는 favs 목록에 현재 rooms이 담겨있다면(=user가 fav 목록에 포함시켜놨다면) True를 반환
                 return obj in user.favs.all()
         return False
+
+    # RoomSerializer를 사용하여 create 활동을 할 떄 (in RoomViewSet)
+    # room 정보 입력 말고 user 정보 입력도 하라는 문제가 발생한다 이때 해결책은
+    # 1. user = UserSerializer(read_only=True)를 해주고 (<- 이것만 하면 user 정보가 없어서 room을 생성할 수 없다는 오류가 뜸(user 정보가 read_only이기 때문))
+    # 2. def create에서 새로 생성하는 room 정보에 user 정보를 추가해 준 다음 생성한 room(user 정보가 담긴)을 return 한다
+    def create(self, validated_data):
+        # selializer가 user 정보에 관련된 context를 받는 방법 (Viewset class 안에 있는 def get_serializer_context가 이미 request를 보내고 있음 이걸 이용하면 된다)
+        # http://www.cdrf.co/3.9/rest_framework.viewsets/ModelViewSet.html#get_serializer_context
+        # cdrf를 잘 살펴보면 해야할 수고를 덜어내는 경우가 생긴다
+        # print(self.context.get("request").user)
+        request = self.context.get("request")
+        room = Room.objects.create(**validated_data, user=request.user)
+        return room
