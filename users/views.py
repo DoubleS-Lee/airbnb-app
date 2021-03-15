@@ -24,9 +24,14 @@ class UsersViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
+        # print(self.action)    # favs에 접근하는 경우 self.action의 값이 favs가 된다
         if self.action == "list":
             permission_classes = [IsAdminUser]
-        elif self.action == "create" or self.action == "retrieve":
+        elif (
+            self.action == "create"
+            or self.action == "retrieve"
+            or self.action == "favs"  # 다른 유저가 나의 favs를 보는 것을 허락하게하고 싶을때 사용
+        ):
             permission_classes = [AllowAny]
         else:  # delete, update, partial_update가 여기 해당됨
             permission_classes = [IsSelf | IsAdminUser]
@@ -63,18 +68,17 @@ class UsersViewSet(ModelViewSet):
         else:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-
-class FavsView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # user에 현재 로그인된(=요청을 한) 유저를 할당
-        user = request.user
+    # detail=True인 경우에는 detail을 보겠다는 의미니까 detail에 해당하는 pk값을 인자로 건네줘야만 한다
+    @action(detail=True)
+    def favs(self, request, pk):
+        # user 정보를 viewset안에 내장되어 있는 get_object 함수로 가져온다
+        user = self.get_object()
         # user의 favs의 전부를 가져온다
         serializer = RoomSerializer(user.favs.all(), many=True).data
         return Response(serializer)
 
+
+class FavsView(APIView):
     def put(self, request):
         # ("pk", None) 이렇게 써줬기 때문에 입력을 받을때 id로 받는게 아니라 pk로 입력을 받는다
         pk = request.data.get("pk", None)
