@@ -156,3 +156,30 @@ REST_FRAMEWORK = {
         "config.authentication.JWTAuthentication",
     ],
 }
+
+
+# Rest_Framework 팁
+# 1. AWS에 deploy할때 WSGIPassAuthorization를 On 해줘야하만 한다
+# https://www.django-rest-framework.org/api-guide/authentication/#apache-mod_wsgi-specific-configuration
+# https://docs.aws.amazon.com/ko_kr/elasticbeanstalk/latest/dg/create-deploy-python-container.html
+
+# 2.renderers
+# renderers는 일반유저들에게 내가 만든 api 페이지를 보여주지 않기 위해 설정하는 것이다
+# https://www.django-rest-framework.org/api-guide/renderers/
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',
+#         'rest_framework.renderers.BrowsableAPIRenderer',
+#     ]
+# }
+# 기본적으로 'rest_framework.renderers.BrowsableAPIRenderer',로 세팅되어 있는데 settings.py에서 DEBUG가 False일때(=deploy를 했다는 의미)는 이 설정을 꺼주도록 만들어야한다
+if not DEBUG:
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
+        "rest_framework.renderers.JSONRenderer",
+    ]
+
+# 3.throttling
+# 하루에 얼만큼 api를 요청할 수 있는지 설정
+# https://www.django-rest-framework.org/api-guide/throttling/
+
+# 4.

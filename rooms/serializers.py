@@ -3,6 +3,13 @@
 from rest_framework import serializers
 from .models import Room
 from users.serializers import UserSerializer
+from .models import Room, Photo
+
+
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photo
+        exclude = ("room",)
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -12,6 +19,7 @@ class RoomSerializer(serializers.ModelSerializer):
     # 밑에 def get_is_fav 메소드를 생성한다
     # 메소드 앞에 get_을 붙여야한다
     is_fav = serializers.SerializerMethodField()
+    photos = PhotoSerializer(read_only=True, many=True)
 
     # ModelSerializer 하나로 create, update 메소드를 따로 구현할 필요가 없음
     class Meta:
