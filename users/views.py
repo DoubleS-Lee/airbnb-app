@@ -4,7 +4,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework import status
 from .models import User
@@ -32,25 +32,36 @@ class UsersViewSet(ModelViewSet):
             permission_classes = [IsSelf | IsAdminUser]
         return [permission() for permission in permission_classes]
 
-
-# APIView에 사용하는 장고 authentication, permissions
-# https://www.django-rest-framework.org/api-guide/authentication/
-class MeView(APIView):
-
-    # permission_classes를 사용하면 이 클래스 내부를 실행하기전에 유저가 접근 권한을 가졌는지 자동으로 판별해준다
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response(UserSerializer(request.user).data)
-
-    def put(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
-        # print(serializer.is_valid())
-        if serializer.is_valid():
-            serializer.save()
-            return Response()
+    # methods는 이 메소드(=url)에서 어떤 작업(CRUD중)을 하는지 지정해주는건데 기본으로 get이 되어 있음 근데 login에서는 get은 필요없고 post만 필요하니까 methods에 post를 넣어준다
+    @action(detail=False, methods=["post"])
+    def login(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        # print(request.data)
+        if not username or not password:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        # print(username, password)
+        # 입력받은 username과 password에 해당하는 가입된 유저가 있는지 찾아본다
+        # 있으면 user를 반환, 없으면 None을 반환한다
+        # https://docs.djangoproject.com/en/3.1/topics/auth/default/#authenticating-users
+        user = authenticate(username=username, password=password)
+        # print(user)
+        if user is not None:
+            # settings.py 파일은 그냥 불러오면 안되고 from django.conf import settings 이렇게 불러와야 한다
+            # SECRET_KEY는 장고 settings.py의 SECRET_KEY를 이용
+            # https://pyjwt.readthedocs.io/en/stable/
+            # https://jwt.io/
+            # user.pk를 가지고 고유한 토큰을 생성한다
+            encoded_jwt = jwt.encode(
+                {"pk": user.pk}, settings.SECRET_KEY, algorithm="HS256"
+            )
+            # print(encoded_jwt)
+            # 그리고 생성한 토큰을 token이라는 이름으로 내보내준다
+            # user.pk값을 id라는 이름으로 token과 함께 보내준다
+            # 이 id와 token을 가지고 따로 me/ 페이지를 만들지 않더라도 유저가 본인의 user 정보에 접근할수있게 할 것이다
+            return Response(data={"token": encoded_jwt, "id": user.pk})
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 class FavsView(APIView):
@@ -84,41 +95,3 @@ class FavsView(APIView):
             except Room.DoesNotExist:
                 pass
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET"])
-def user_detail(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        return Response(UserSerializer(user).data)
-    except User.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(["POST"])
-def login(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
-    # print(request.data)
-    if not username or not password:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    # print(username, password)
-    # 입력받은 username과 password에 해당하는 가입된 유저가 있는지 찾아본다
-    # 있으면 user를 반환, 없으면 None을 반환한다
-    # https://docs.djangoproject.com/en/3.1/topics/auth/default/#authenticating-users
-    user = authenticate(username=username, password=password)
-    # print(user)
-    if user is not None:
-        # settings.py 파일은 그냥 불러오면 안되고 from django.conf import settings 이렇게 불러와야 한다
-        # SECRET_KEY는 장고 settings.py의 SECRET_KEY를 이용
-        # https://pyjwt.readthedocs.io/en/stable/
-        # https://jwt.io/
-        # user.pk를 가지고 고유한 토큰을 생성한다
-        encoded_jwt = jwt.encode(
-            {"pk": user.pk}, settings.SECRET_KEY, algorithm="HS256"
-        )
-        # print(encoded_jwt)
-        # 그리고 생성한 토큰을 token이라는 이름으로 내보내준다
-        return Response(data={"token": encoded_jwt})
-    else:
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
