@@ -24,7 +24,9 @@ class UsersViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        # print(self.action)    # favs에 접근하는 경우 self.action의 값이 favs가 된다
+        # def favs에 접근하는 경우 self.action의 값이 favs가 된다
+        # def toggle_favs에 접근하는 경우 self.action의 값이 toggle_favs가 된다
+        # print(self.action)
         if self.action == "list":
             permission_classes = [IsAdminUser]
         elif (
@@ -33,7 +35,7 @@ class UsersViewSet(ModelViewSet):
             or self.action == "favs"  # 다른 유저가 나의 favs를 보는 것을 허락하게하고 싶을때 사용
         ):
             permission_classes = [AllowAny]
-        else:  # delete, update, partial_update가 여기 해당됨
+        else:  # delete, update, partial_update, toggle_favs가 여기 해당됨
             permission_classes = [IsSelf | IsAdminUser]
         return [permission() for permission in permission_classes]
 
@@ -77,12 +79,15 @@ class UsersViewSet(ModelViewSet):
         serializer = RoomSerializer(user.favs.all(), many=True).data
         return Response(serializer)
 
-
-class FavsView(APIView):
-    def put(self, request):
+    # method 기능 확장
+    # 같은 url에서 CRUD 기능(=method)만 다른거로 지정하고 싶은 경우 다음과 같이 설정한다
+    # method를 불러오고 mapping을 써준뒤 원하는 기능을 적어 넣는다 그럼 상속의 개념이 됨
+    # 이렇게 하면 다른 기능이지만 같은 url에 존재하게 된다
+    @favs.mapping.put
+    def toggle_favs(self, request, pk):
         # ("pk", None) 이렇게 써줬기 때문에 입력을 받을때 id로 받는게 아니라 pk로 입력을 받는다
         pk = request.data.get("pk", None)
-        user = request.user
+        user = self.get_object()
         # delete를 구현할때 def delete를 안쓰고 add()와 remove()로 구현할수도 있다
         # 로직 : 만약에 입력한 값이 favs에 있다면 삭제(remove)하고, 없다면 추가(add)해라
         if pk is not None:
