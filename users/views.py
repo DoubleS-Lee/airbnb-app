@@ -12,16 +12,25 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
 from rooms.serializers import RoomSerializer
 from rooms.models import Room
+from rest_framework.viewsets import ModelViewSet
+
+# IsAdminUser는 관리자 권한을 말함
+from rest_framework.permissions import IsAdminUser, AllowAny
+from .permissions import IsSelf
 
 
-class UsersView(APIView):
-    def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            new_user = serializer.save()
-            return Response(UserSerializer(new_user).data)
-        else:
-            return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+class UsersViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_permissions(self):
+        if self.action == "list":
+            permission_classes = [IsAdminUser]
+        elif self.action == "create" or self.action == "retrieve":
+            permission_classes = [AllowAny]
+        else:  # delete, update, partial_update가 여기 해당됨
+            permission_classes = [IsSelf | IsAdminUser]
+        return [permission() for permission in permission_classes]
 
 
 # APIView에 사용하는 장고 authentication, permissions
